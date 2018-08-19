@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait 
 from selenium.webdriver.support import expected_conditions as EC 
 from selenium.common.exceptions import TimeoutException
+import alsaaudio
 
 
 option = webdriver.ChromeOptions()
@@ -13,6 +14,7 @@ timeout = 20
 
 app = Flask(__name__)
 browser = None
+sound = alsaaudio.Mixer()
 
 @app.route('/')
 def index():
@@ -64,6 +66,17 @@ def stop():
 	browser.close()
 	browser = None
 	return 'Stopped'
+
+@app.route('/vol/<number>')
+def decrease(number):
+	number = int(number)
+	if number <= 100 and number >= 0:
+		sound.setvolume(number)
+	print int(sound.getvolume()[0])
+	return ''
+
+
+
 
 if __name__ == '__main__':
 	app.run(host='0.0.0.0', debug=True)

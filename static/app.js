@@ -16,6 +16,10 @@
 		request.setRequestHeader("Content-Type", "application/json");
 		request.send(JSON.stringify({url:url}));
 	});
+	document.getElementById('clear').addEventListener('click',function() {
+		var tx =  document.getElementById('url');
+		tx.value = '';
+	});
 
 
 	document.getElementById('stop').addEventListener('click',function() {
@@ -36,7 +40,7 @@
 		request.onreadystatechange = function() {
 			if (request.readyState === XMLHttpRequest.DONE) {
 				if (request.status === 200) {
-					// stopped
+					// paused
 				}
 			}
 		};
@@ -56,7 +60,7 @@
 		request.onreadystatechange = function() {
 			if (request.readyState === XMLHttpRequest.DONE) {
 				if (request.status === 200) {
-					// stopped
+					// full screen successful
 				}
 			}
 		};
@@ -70,5 +74,17 @@
 		}
 		// console.log(document.getElementById('pause').innerText);
 	});
+
+	var slider = document.getElementById("myRange");
+	console.log(slider.value)
+
+	// Update the current slider value (each time you drag the slider handle)
+	slider.oninput = function() {
+		var request = new XMLHttpRequest();
+		request.open('GET', '/vol/'+this.value);
+		request.send();
+	    // output.innerHTML = this.value;
+	    console.log(this.value)
+	} 
 
 })();
