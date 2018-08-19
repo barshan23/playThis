@@ -75,6 +75,10 @@ def decrease(number):
 	print int(sound.getvolume()[0])
 	return ''
 
+@app.route('/getvol')
+def get():
+	return str(int(sound.getvolume()[0]))
+
 
 
 

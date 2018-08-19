@@ -83,8 +83,20 @@
 		var request = new XMLHttpRequest();
 		request.open('GET', '/vol/'+this.value);
 		request.send();
-	    // output.innerHTML = this.value;
-	    console.log(this.value)
-	} 
+		// output.innerHTML = this.value;
+		console.log(this.value)
+	}
+	window.onload = function() {
+		var request = new XMLHttpRequest();
+		request.open('GET', '/getvol');
+		request.onreadystatechange = function() {
+			if (request.readyState == XMLHttpRequest.DONE) {
+				var sound = request.responseText;	
+				console.log(sound);
+				slider.value = sound;
+			}
+		}
+		request.send();
+	}
 
 })();
