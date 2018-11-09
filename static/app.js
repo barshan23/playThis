@@ -1,4 +1,23 @@
+var musics, playing;
+function playSong(id) {
+	var request = new XMLHttpRequest();
+	request.onreadystatechange = function() {
+		if (request.readyState === XMLHttpRequest.DONE) {
+			if (request.status === 200) {
+				if (playing)
+					document.getElementById(playing).classList.remove("playing");
+				document.getElementById(id).classList.add("playing");
+				playing = id;
+			}
+		}
+	};
+	console.log('/url/'+musics[id]);
+	request.open('GET', '/url/'+musics[id]);
+	request.send();
+}
+
 (function() {
+
 
 
 	document.getElementById('play').addEventListener('click',function() {
@@ -7,6 +26,8 @@
 			if (request.readyState === XMLHttpRequest.DONE) {
 				if (request.status === 200) {
 					// show playing
+					document.getElementById(playing).classList.remove("playing");
+					playing = -1;
 				}
 			}
 		};
@@ -16,6 +37,8 @@
 		request.setRequestHeader("Content-Type", "application/json");
 		request.send(JSON.stringify({url:url}));
 	});
+
+	
 	document.getElementById('clear').addEventListener('click',function() {
 		var tx =  document.getElementById('url');
 		tx.value = '';
@@ -86,7 +109,18 @@
 		// output.innerHTML = this.value;
 		console.log(this.value)
 	}
+
+	// list to put the musics
+	var music_list = document.getElementById('musics');
+
+
 	window.onload = function() {
+		get_volume();
+		get_list();
+	}
+
+	// gets the initial value of sound
+	var get_volume = function () {
 		var request = new XMLHttpRequest();
 		request.open('GET', '/getvol');
 		request.onreadystatechange = function() {
@@ -98,5 +132,26 @@
 		}
 		request.send();
 	}
+
+	var get_list = function() {
+		var request = new XMLHttpRequest();
+		request.open('GET', '/musics');
+		request.onreadystatechange = function() {
+			if (request.readyState == XMLHttpRequest.DONE) {
+				musics = JSON.parse(request.responseText);	
+				console.log(musics);
+				for (const [index, music] of musics.entries()){
+					console.log(index + music);
+					var newElement = document.createElement('li');
+					newElement.setAttribute('id', index);
+					newElement.setAttribute('onClick', "playSong("+index+")");
+					newElement.innerHTML = '<a>'+music+'</a>';
+					music_list.appendChild(newElement);
+				}
+			}
+		}
+		request.send();
+	}
+
 
 })();

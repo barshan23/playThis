@@ -7,6 +7,11 @@
 	<link rel="manifest" href="/static/manifest.json">
 	<meta name="theme-color" content="#2F3BA2">
 	<style type="text/css">
+		body{
+			/*width: 100%;*/
+			margin: 0;
+			padding: 0;
+		}
 		.slidecontainer {
 			width: 100%; /* Width of the outside container */
 		}
@@ -45,6 +50,21 @@
 			background: #4CAF50; /* Green background */
 			cursor: pointer; /* Cursor on hover */
 		}
+		#musics>li{
+			padding: 10px;
+			margin: 5px;
+			border: 1px solid black;
+			cursor: pointer;
+		}
+
+		#music>li a {
+			text-decoration: none;
+		}
+
+		.playing{
+			box-shadow: 10px 10px 10px grey;
+		}
+
 	</style>
 </head>
 <body>
@@ -56,6 +76,12 @@
 	<button id='fscreen'>Fullscreen</button>
 	<div class="slidecontainer">
 	  <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
+	</div>
+
+	<div class="library">
+		<ul id="musics">
+			
+		</ul>
 	</div>
 
 	<script src="/static/app.js"></script>
