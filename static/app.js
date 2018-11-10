@@ -8,6 +8,8 @@ function playSong(id) {
 					document.getElementById(playing).classList.remove("playing");
 				document.getElementById(id).classList.add("playing");
 				playing = id;
+				if (!document.querySelector('button.play').classList.contains('paused'))
+					document.querySelector('button.play').classList.add('paused');
 			}
 		}
 	};
@@ -17,66 +19,56 @@ function playSong(id) {
 }
 
 (function() {
-
-
-
 	document.getElementById('play').addEventListener('click',function() {
 		var request = new XMLHttpRequest();
-		request.onreadystatechange = function() {
+		request.onreadystatechange = function(){
 			if (request.readyState === XMLHttpRequest.DONE) {
 				if (request.status === 200) {
 					// show playing
-					document.getElementById(playing).classList.remove("playing");
-					playing = -1;
+					response = JSON.parse(request.responseText);
+					console.log(response);
+					if (response.done)
+						document.getElementById('play').classList.toggle('paused');
+					playing = null;
 				}
 			}
 		};
 		var url = document.getElementById('url').value;
-		console.log(url);
-		request.open('POST', '/url');
-		request.setRequestHeader("Content-Type", "application/json");
-		request.send(JSON.stringify({url:url}));
+		// console.log(url);
+		if (url.length > 0){
+			if (playing)
+				document.getElementById(playing).classList.remove("playing");
+			stop();
+			request.open('POST', '/url');
+			request.setRequestHeader("Content-Type", "application/json");
+			request.send(JSON.stringify({url:url}));
+			document.getElementById('url').value = '';
+		}else {
+			request.open('GET', '/pp');
+			request.send();
+		}
 	});
 
-	
-	document.getElementById('clear').addEventListener('click',function() {
-		var tx =  document.getElementById('url');
-		tx.value = '';
-	});
+	// document.getElementById('clear').addEventListener('click',function() {
+	// 	var tx =  document.getElementById('url');
+	// 	tx.value = '';
+	// });
 
-
-	document.getElementById('stop').addEventListener('click',function() {
+	var stop = function() {
 		var request = new XMLHttpRequest();
 		request.onreadystatechange = function() {
 			if (request.readyState === XMLHttpRequest.DONE) {
 				if (request.status === 200) {
 					// stopped
+					if (document.querySelector('button.play').classList.contains('paused'))
+						document.querySelector('button.play').classList.remove('paused');
 				}
 			}
 		};
 		request.open('GET', '/stop');
 		request.send();
-	});
-
-	document.getElementById('pause').addEventListener('click',function() {
-		var request = new XMLHttpRequest();
-		request.onreadystatechange = function() {
-			if (request.readyState === XMLHttpRequest.DONE) {
-				if (request.status === 200) {
-					// paused
-				}
-			}
-		};
-		request.open('GET', '/pp');
-		request.send();
-		let but = document.getElementById('pause');
-		if (but.innerText === 'Pause') {
-			but.innerText = 'Play'
-		}else {
-			but.innerText = 'Pause'
-		}
-		// console.log(document.getElementById('pause').innerText);
-	});
+	};
+	document.getElementById('stop').addEventListener('click',stop);
 
 	document.getElementById('fscreen').addEventListener('click',function() {
 		var request = new XMLHttpRequest();
@@ -84,17 +76,26 @@ function playSong(id) {
 			if (request.readyState === XMLHttpRequest.DONE) {
 				if (request.status === 200) {
 					// full screen successful
+					response = JSON.parse(request.responseText);
+					console.log(response);
+					if (response.done){
+						if (playing){
+							document.getElementById(playing).classList.remove("playing");
+							playing = null;
+						}
+						let but = document.getElementById('fscreen');
+						if (but.innerText === 'Fullscreen') {
+							but.innerText = 'Exit Fullscreen';
+						}else {
+							but.innerText = 'Fullscreen';
+						}
+					}
 				}
 			}
 		};
 		request.open('GET', '/fscreen');
 		request.send();
-		let but = document.getElementById('fscreen');
-		if (but.innerText === 'Fullscreen') {
-			but.innerText = 'Exit Fullscreen'
-		}else {
-			but.innerText = 'Fullscreen'
-		}
+		
 		// console.log(document.getElementById('pause').innerText);
 	});
 
@@ -152,6 +153,5 @@ function playSong(id) {
 		}
 		request.send();
 	}
-
 
 })();

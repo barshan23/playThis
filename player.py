@@ -4,7 +4,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait 
 from selenium.webdriver.support import expected_conditions as EC 
 from selenium.common.exceptions import TimeoutException
-import alsaaudio, os, json, vlc
+from selenium.webdriver.common.action_chains import ActionChains # this is used to do the mouse over
+import alsaaudio, os, json, vlc, time
 
 
 option = webdriver.ChromeOptions()
@@ -50,7 +51,9 @@ def play():
 		theatre_mode = WebDriverWait(browser, timeout).until(EC.visibility_of_element_located((By.XPATH, "//button[@title='Theater mode']")))
 		print "visible"
 		theatre_mode.click()
-	return "playing"
+	duration = browser.find_element_by_css_selector('span.ytp-time-duration').text
+	current = browser.find_element_by_css_selector('span.ytp-time-current').text
+	return json.dumps({'done' : True, 'offline': False, 'duration' : duration, 'current' : current})
 
 # play offline song
 @app.route('/url/<name>')
@@ -68,30 +71,33 @@ def play_offline(name):
 		player = vlc.MediaPlayer(library+name)
 		vlc.libvlc_audio_set_volume(player, 85)
 		player.play()
-	return 'playing offline'
+	return json.dumps({'done' : True, 'offline' : True})
 
 
 # route for lisitng all the musics in the music library
 @app.route('/musics')
 def list_musics():
-	musics = json.dumps([a for a in os.listdir(library) if not os.path.isdir(library+a) ])
-	# print musics
-
+	musics = json.dumps([a for a in os.listdir(library) if not os.path.isdir(library+a)])
 	return musics
 
 
 @app.route('/pp')
 def play_pause():
 	global browser
+	# print player
 	if browser:
+		print "browser"
 		try:
 			browser.find_element_by_css_selector('button.ytp-play-button').click()
 		except Exception as e:
 			print e
+		return json.dumps({'done' : True})
+
 	elif player:
 		player.pause();
-	return 'done'
-
+		return json.dumps({'done' : True})
+	return json.dumps({'done' : False})
+	
 
 
 @app.route('/fscreen')
@@ -101,7 +107,8 @@ def fscreen():
 			browser.find_element_by_css_selector('button.ytp-fullscreen-button').click()
 		except Exception as e:
 			print e
-	return 'done'
+		return json.dumps({'done' : True})
+	return json.dumps({'done' : False})
 
 @app.route('/stop')
 def stop():
@@ -128,6 +135,31 @@ def get():
 	return str(int(sound.getvolume()[0]))
 
 
+
+@app.route('/position')
+def get_position():
+	if player:
+		pos = player.get_position();
+		return json.dumps({'pos' : pos, 'offline' : True})
+	elif browser:
+		while True:
+			try:
+				# first do a mouse hover over the video player to get the current time
+				ActionChains(browser).move_to_element(browser.find_element_by_css_selector('span.ytp-time-current')).perform()
+				time.sleep(1)
+				current = browser.find_element_by_css_selector('span.ytp-time-current').text.split(':')
+			except Exception as e:
+				print e
+				return json.dumps({'pos' : False})
+			print current
+			if len(current) >= 2:
+				break
+		# print browser.find_element_by_css_selector('span.ytp-time-current').text
+		print current
+		current = [int(a) for a in current] if len(current) == 3 else [0,int(current[0]), int(current[1])]
+		print current
+		return json.dumps({'offline' : False, 'pos' : current})
+	return json.dumps({'pos' : False})
 
 
 if __name__ == '__main__':
