@@ -4,6 +4,8 @@ function playSong(id) {
 	request.onreadystatechange = function() {
 		if (request.readyState === XMLHttpRequest.DONE) {
 			if (request.status === 200) {
+				console.log(playing);
+				console.log(id);
 				if (playing)
 					document.getElementById(playing).classList.remove("playing");
 				document.getElementById(id).classList.add("playing");
@@ -13,7 +15,7 @@ function playSong(id) {
 			}
 		}
 	};
-	console.log('/url/'+musics[id]);
+	// console.log('/url/'+musics[id]);
 	request.open('GET', '/url/'+musics[id]);
 	request.send();
 }
@@ -27,8 +29,13 @@ function playSong(id) {
 					// show playing
 					response = JSON.parse(request.responseText);
 					console.log(response);
-					if (response.done)
+					console.log(request);
+					if (response.done && !document.querySelector('button.play').classList.contains('paused') && !request.responseURL.match(/pp$/))
+						document.querySelector('button.play').classList.add('paused');
+					if (response.done && request.responseURL.match(/pp$/)){ // mathces urls ending with pp
 						document.getElementById('play').classList.toggle('paused');
+						// console.log(request.responseURL.match(/pp$/));
+					}
 					playing = null;
 				}
 			}
@@ -36,9 +43,11 @@ function playSong(id) {
 		var url = document.getElementById('url').value;
 		// console.log(url);
 		if (url.length > 0){
-			if (playing)
+			if (playing){
 				document.getElementById(playing).classList.remove("playing");
-			stop();
+				stop();
+			}
+			// stop();
 			request.open('POST', '/url');
 			request.setRequestHeader("Content-Type", "application/json");
 			request.send(JSON.stringify({url:url}));
@@ -49,17 +58,16 @@ function playSong(id) {
 		}
 	});
 
-	// document.getElementById('clear').addEventListener('click',function() {
-	// 	var tx =  document.getElementById('url');
-	// 	tx.value = '';
-	// });
-
 	var stop = function() {
 		var request = new XMLHttpRequest();
 		request.onreadystatechange = function() {
 			if (request.readyState === XMLHttpRequest.DONE) {
 				if (request.status === 200) {
 					// stopped
+					if (playing){
+						document.getElementById(playing).classList.remove("playing");
+						playing = null;
+					}
 					if (document.querySelector('button.play').classList.contains('paused'))
 						document.querySelector('button.play').classList.remove('paused');
 				}
@@ -79,10 +87,6 @@ function playSong(id) {
 					response = JSON.parse(request.responseText);
 					console.log(response);
 					if (response.done){
-						if (playing){
-							document.getElementById(playing).classList.remove("playing");
-							playing = null;
-						}
 						let but = document.getElementById('fscreen');
 						if (but.innerText === 'Fullscreen') {
 							but.innerText = 'Exit Fullscreen';
@@ -142,7 +146,7 @@ function playSong(id) {
 				musics = JSON.parse(request.responseText);	
 				console.log(musics);
 				for (const [index, music] of musics.entries()){
-					console.log(index + music);
+					// console.log(index + music);
 					var newElement = document.createElement('li');
 					newElement.setAttribute('id', index);
 					newElement.setAttribute('onClick', "playSong("+index+")");
